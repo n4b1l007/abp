@@ -31,6 +31,7 @@ using Volo.Abp.Threading;
 using Volo.Abp.UI;
 using Volo.Abp.VirtualFileSystem;
 using Volo.Blogging;
+using Volo.Blogging.Files;
 using Volo.BloggingTestApp.EntityFrameworkCore;
 using Volo.BloggingTestApp.MongoDb;
 
@@ -109,6 +110,11 @@ namespace Volo.BloggingTestApp
             {
                 options.DefaultThemeName = BasicTheme.Name;
             });
+
+            Configure<BlogFileOptions>(options =>
+            {
+                options.FileUploadLocalFolder = Path.Combine(hostingEnvironment.WebRootPath, "files");
+            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -153,18 +159,8 @@ namespace Volo.BloggingTestApp
                 AsyncHelper.RunSync(async () =>
                 {
                     await scope.ServiceProvider
-                        .GetRequiredService<IIdentityDataSeeder>()
-                        .SeedAsync(
-                            "1q2w3E*"
-                        );
-
-                    await scope.ServiceProvider
-                        .GetRequiredService<IPermissionDataSeeder>()
-                        .SeedAsync(
-                            RolePermissionValueProvider.ProviderName,
-                            "admin",
-                            IdentityPermissions.GetAll().Union(BloggingPermissions.GetAll())
-                        );
+                        .GetRequiredService<IDataSeeder>()
+                        .SeedAsync();
                 });
             }
         }

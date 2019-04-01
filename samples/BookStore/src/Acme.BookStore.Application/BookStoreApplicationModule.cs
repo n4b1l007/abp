@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Acme.BookStore.Permissions;
+﻿using Acme.BookStore.Permissions;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.Identity;
@@ -16,17 +15,10 @@ namespace Acme.BookStore
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<PermissionOptions>(options =>
-            {
-                options.DefinitionProviders.Add<BookStorePermissionDefinitionProvider>();
-            });
-
             Configure<AbpAutoMapperOptions>(options =>
             {
                 options.AddProfile<BookStoreApplicationAutoMapperProfile>();
             });
-
-            context.Services.AddAssemblyOf<BookStoreApplicationModule>();
         }
     }
 }

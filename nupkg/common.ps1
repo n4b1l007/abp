@@ -8,6 +8,7 @@ $solutions = (
     "modules/users",
     "modules/setting-management",
     "modules/permission-management",
+    "modules/feature-management",
     "modules/tenant-management",
     "modules/identity",
     "modules/identityserver",
@@ -40,7 +41,7 @@ $projects = (
     "framework/src/Volo.Abp.AspNetCore.TestBase",    
     "framework/src/Volo.Abp.Auditing",
     "framework/src/Volo.Abp.Authorization",
-    "framework/src/Volo.Abp.AutoFac",
+    "framework/src/Volo.Abp.Autofac",
     "framework/src/Volo.Abp.AutoMapper",
     "framework/src/Volo.Abp.BackgroundJobs",
     "framework/src/Volo.Abp.BackgroundJobs.Abstractions",
@@ -60,6 +61,7 @@ $projects = (
     "framework/src/Volo.Abp.EntityFrameworkCore.PostgreSql",
     "framework/src/Volo.Abp.EventBus",
     "framework/src/Volo.Abp.EventBus.RabbitMQ",
+    "framework/src/Volo.Abp.Features",
     "framework/src/Volo.Abp.Guids",
     "framework/src/Volo.Abp.HangFire",
     "framework/src/Volo.Abp.Http",
@@ -72,7 +74,7 @@ $projects = (
     "framework/src/Volo.Abp.Localization.Abstractions",
     "framework/src/Volo.Abp.MemoryDb",
     "framework/src/Volo.Abp.MongoDB",
-    "framework/src/Volo.Abp.MultiTenancy.Abstractions",
+    "framework/src/Volo.Abp.MultiTenancy",
     "framework/src/Volo.Abp.ObjectMapping",
     "framework/src/Volo.Abp.RabbitMQ",
     "framework/src/Volo.Abp.Security",
@@ -113,6 +115,17 @@ $projects = (
     "modules/permission-management/src/Volo.Abp.PermissionManagement.HttpApi.Client",
     "modules/permission-management/src/Volo.Abp.PermissionManagement.Web",
 
+    # modules/feature-management
+    "modules/feature-management/src/Volo.Abp.FeatureManagement.Domain.Shared",
+    "modules/feature-management/src/Volo.Abp.FeatureManagement.Domain",
+    "modules/feature-management/src/Volo.Abp.FeatureManagement.Application.Contracts",
+    "modules/feature-management/src/Volo.Abp.FeatureManagement.Application",
+    "modules/feature-management/src/Volo.Abp.FeatureManagement.EntityFrameworkCore",
+    "modules/feature-management/src/Volo.Abp.FeatureManagement.MongoDB",
+    "modules/feature-management/src/Volo.Abp.FeatureManagement.HttpApi",
+    "modules/feature-management/src/Volo.Abp.FeatureManagement.HttpApi.Client",
+    "modules/feature-management/src/Volo.Abp.FeatureManagement.Web",
+    
     # modules/tenant-management
     "modules/tenant-management/src/Volo.Abp.TenantManagement.Domain.Shared",
     "modules/tenant-management/src/Volo.Abp.TenantManagement.Domain",
@@ -140,6 +153,7 @@ $projects = (
     # modules/identityserver
     "modules/identityserver/src/Volo.Abp.IdentityServer.Domain.Shared",
     "modules/identityserver/src/Volo.Abp.IdentityServer.Domain",
+    "modules/identityserver/src/Volo.Abp.PermissionManagement.Domain.IdentityServer",
     "modules/identityserver/src/Volo.Abp.IdentityServer.EntityFrameworkCore", 
     "modules/identityserver/src/Volo.Abp.IdentityServer.MongoDB",
 
@@ -163,6 +177,7 @@ $projects = (
     "modules/blogging/src/Volo.Blogging.Domain",
     "modules/blogging/src/Volo.Blogging.Domain.Shared",
     "modules/blogging/src/Volo.Blogging.EntityFrameworkCore",
+    "modules/blogging/src/Volo.Blogging.MongoDB",
     "modules/blogging/src/Volo.Blogging.HttpApi",
     "modules/blogging/src/Volo.Blogging.HttpApi.Client",
     "modules/blogging/src/Volo.Blogging.Web",

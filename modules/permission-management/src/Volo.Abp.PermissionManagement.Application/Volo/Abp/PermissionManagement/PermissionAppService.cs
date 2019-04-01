@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Authorization.Permissions;
+using Volo.Abp.MultiTenancy;
 
 namespace Volo.Abp.PermissionManagement
 {
@@ -40,6 +42,8 @@ namespace Volo.Abp.PermissionManagement
                 Groups = new List<PermissionGroupDto>()
             };
 
+            var multiTenancySide = CurrentTenant.GetMultiTenancySide();
+
             foreach (var group in _permissionDefinitionManager.GetGroups())
             {
                 var groupDto = new PermissionGroupDto
@@ -51,12 +55,23 @@ namespace Volo.Abp.PermissionManagement
 
                 foreach (var permission in group.GetPermissionsWithChildren())
                 {
+                    if (permission.Providers.Any() && !permission.Providers.Contains(providerName))
+                    {
+                        continue;
+                    }
+
+                    if (!permission.MultiTenancySide.HasFlag(multiTenancySide))
+                    {
+                        continue;
+                    }
+
                     var grantInfoDto = new PermissionGrantInfoDto
                     {
                         Name = permission.Name,
                         DisplayName = permission.DisplayName.Localize(_stringLocalizerFactory),
                         ParentName = permission.Parent?.Name,
-                        Providers = new List<ProviderInfoDto>()
+                        AllowedProviders = permission.Providers,
+                        GrantedProviders = new List<ProviderInfoDto>()
                     };
 
                     var grantInfo = await _permissionManager.GetAsync(permission.Name, providerName, providerKey);
@@ -65,7 +80,7 @@ namespace Volo.Abp.PermissionManagement
 
                     foreach (var provider in grantInfo.Providers)
                     {
-                        grantInfoDto.Providers.Add(new ProviderInfoDto
+                        grantInfoDto.GrantedProviders.Add(new ProviderInfoDto
                         {
                             ProviderName = provider.Name,
                             ProviderKey = provider.Key,
@@ -75,7 +90,10 @@ namespace Volo.Abp.PermissionManagement
                     groupDto.Permissions.Add(grantInfoDto);
                 }
 
-                result.Groups.Add(groupDto);
+                if (groupDto.Permissions.Any())
+                {
+                    result.Groups.Add(groupDto);
+                }
             }
 
             return result;
@@ -85,9 +103,9 @@ namespace Volo.Abp.PermissionManagement
         {
             await CheckProviderPolicy(providerName);
 
-            foreach (var permission in input.Permissions)
+            foreach (var permissionDto in input.Permissions)
             {
-                await _permissionManager.SetAsync(permission.Name, providerName, providerKey, permission.IsGranted);
+                await _permissionManager.SetAsync(permissionDto.Name, providerName, providerKey, permissionDto.IsGranted);
             }
         }
 

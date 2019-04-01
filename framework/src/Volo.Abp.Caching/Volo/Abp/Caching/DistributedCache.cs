@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -70,11 +69,12 @@ namespace Volo.Abp.Caching
             }
             catch (Exception ex)
             {
-                if ((bool) hideErrors)
+                if (hideErrors == true)
                 {
                     Logger.LogException(ex, LogLevel.Warning);
                     return null;
                 }
+
                 throw;
             }
 
@@ -94,15 +94,19 @@ namespace Volo.Abp.Caching
 
             try
             {
-                cachedBytes = await Cache.GetAsync(NormalizeKey(key), CancellationTokenProvider.FallbackToProvider(token));
+                cachedBytes = await Cache.GetAsync(
+                    NormalizeKey(key),
+                    CancellationTokenProvider.FallbackToProvider(token)
+                );
             }
             catch (Exception ex)
             {
-                if ((bool)hideErrors)
+                if (hideErrors == true)
                 {
                     Logger.LogException(ex, LogLevel.Warning);
                     return null;
                 }
+
                 throw;
             }
             
@@ -126,7 +130,7 @@ namespace Volo.Abp.Caching
                 return value;
             }
 
-            using (AsyncLock.Lock())
+            using (AsyncLock.Lock(CancellationTokenProvider.Token))
             {
                 value = Get(key, hideErrors);
                 if (value != null)
@@ -184,7 +188,7 @@ namespace Volo.Abp.Caching
             }
             catch (Exception ex)
             {
-                if ((bool) hideErrors)
+                if (hideErrors == true)
                 {
                     Logger.LogException(ex, LogLevel.Warning);
                     return;
@@ -194,13 +198,13 @@ namespace Volo.Abp.Caching
             }
         }
 
-        public virtual Task SetAsync(string key, TCacheItem value, DistributedCacheEntryOptions options = null, bool? hideErrors = null, CancellationToken token = default)
+        public virtual async Task SetAsync(string key, TCacheItem value, DistributedCacheEntryOptions options = null, bool? hideErrors = null, CancellationToken token = default)
         {
             hideErrors = hideErrors ?? _distributedCacheOption.HideErrors;
 
             try
             {
-                return Cache.SetAsync(
+                await Cache.SetAsync(
                     NormalizeKey(key),
                     ObjectSerializer.Serialize(value),
                     options ?? DefaultCacheOptions,
@@ -209,11 +213,12 @@ namespace Volo.Abp.Caching
             }
             catch (Exception ex)
             {
-                if ((bool)hideErrors)
+                if (hideErrors == true)
                 {
                     Logger.LogException(ex, LogLevel.Warning);
-                    return Task.CompletedTask;
+                    return;
                 }
+
                 throw;
             }
         }
@@ -228,7 +233,7 @@ namespace Volo.Abp.Caching
             }
             catch (Exception ex)
             {
-                if ((bool) hideErrors)
+                if (hideErrors == true)
                 {
                     Logger.LogException(ex, LogLevel.Warning);
                     return;
@@ -238,21 +243,22 @@ namespace Volo.Abp.Caching
             }
         }
 
-        public virtual Task RefreshAsync(string key, bool? hideErrors = null, CancellationToken token = default)
+        public virtual async Task RefreshAsync(string key, bool? hideErrors = null, CancellationToken token = default)
         {
             hideErrors = hideErrors ?? _distributedCacheOption.HideErrors;
 
             try
             {
-                return Cache.RefreshAsync(NormalizeKey(key), CancellationTokenProvider.FallbackToProvider(token));
+                await Cache.RefreshAsync(NormalizeKey(key), CancellationTokenProvider.FallbackToProvider(token));
             }
             catch (Exception ex)
             {
-                if ((bool)hideErrors)
+                if (hideErrors == true)
                 {
                     Logger.LogException(ex, LogLevel.Warning);
-                    return Task.CompletedTask;
+                    return;
                 }
+
                 throw;
             }
         }
@@ -267,7 +273,7 @@ namespace Volo.Abp.Caching
             }
             catch (Exception ex)
             {
-                if ((bool) hideErrors)
+                if (hideErrors == true)
                 {
                     Logger.LogException(ex, LogLevel.Warning);
                 }
@@ -276,21 +282,22 @@ namespace Volo.Abp.Caching
             }
         }
 
-        public virtual Task RemoveAsync(string key, bool? hideErrors = null, CancellationToken token = default)
+        public virtual async Task RemoveAsync(string key, bool? hideErrors = null, CancellationToken token = default)
         {
             hideErrors = hideErrors ?? _distributedCacheOption.HideErrors;
 
             try
             {
-                return Cache.RemoveAsync(NormalizeKey(key), CancellationTokenProvider.FallbackToProvider(token));
+                await Cache.RemoveAsync(NormalizeKey(key), CancellationTokenProvider.FallbackToProvider(token));
             }
             catch (Exception ex)
             {
-                if ((bool)hideErrors)
+                if (hideErrors == true)
                 {
                     Logger.LogException(ex, LogLevel.Warning);
-                    return Task.CompletedTask;
+                    return;
                 }
+
                 throw;
             }
         }
@@ -322,13 +329,7 @@ namespace Volo.Abp.Caching
 
         protected virtual void SetDefaultOptions()
         {
-            //CacheName
-            var cacheNameAttribute = typeof(TCacheItem)
-                .GetCustomAttributes(true)
-                .OfType<CacheNameAttribute>()
-                .FirstOrDefault();
-
-            CacheName = cacheNameAttribute != null ? cacheNameAttribute.Name : typeof(TCacheItem).FullName;
+            CacheName = CacheNameAttribute.GetCacheName(typeof(TCacheItem));
 
             //IgnoreMultiTenancy
             IgnoreMultiTenancy = typeof(TCacheItem).IsDefined(typeof(IgnoreMultiTenancyAttribute), true);
