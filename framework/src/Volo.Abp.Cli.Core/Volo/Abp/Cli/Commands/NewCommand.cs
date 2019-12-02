@@ -17,11 +17,11 @@ namespace Volo.Abp.Cli.Commands
     {
         public ILogger<NewCommand> Logger { get; set; }
 
-        protected ProjectBuilder ProjectBuilder { get; }
+        protected TemplateProjectBuilder TemplateProjectBuilder { get; }
 
-        public NewCommand(ProjectBuilder projectBuilder)
+        public NewCommand(TemplateProjectBuilder templateProjectBuilder)
         {
-            ProjectBuilder = projectBuilder;
+            TemplateProjectBuilder = templateProjectBuilder;
 
             Logger = NullLogger<NewCommand>.Instance;
         }
@@ -30,20 +30,45 @@ namespace Volo.Abp.Cli.Commands
         {
             if (commandLineArgs.Target == null)
             {
-                throw new CliUsageException("Project name is missing!" + Environment.NewLine + Environment.NewLine + await GetUsageInfo());
+                throw new CliUsageException(
+                    "Project name is missing!" +
+                    Environment.NewLine + Environment.NewLine +
+                    GetUsageInfo()
+                );
             }
 
-            Logger.LogInformation("Creating a new project...");
+            Logger.LogInformation("Creating your project...");
             Logger.LogInformation("Project name: " + commandLineArgs.Target);
 
-            var result = await ProjectBuilder.BuildAsync(
-                new ProjectBuildArgs(
-                    SolutionName.Parse(commandLineArgs.Target),
-                    commandLineArgs.Options.GetOrNull(Options.Template.Short, Options.Template.Long),
-                    GetDatabaseProviderOrNull(commandLineArgs),
-                    commandLineArgs.Options
-                )
-            );
+            var template = commandLineArgs.Options.GetOrNull(Options.Template.Short, Options.Template.Long);
+            if (template != null)
+            {
+                Logger.LogInformation("Template: " + template);
+            }
+
+            var version = commandLineArgs.Options.GetOrNull(Options.Version.Short, Options.Version.Long);
+            if (version != null)
+            {
+                Logger.LogInformation("Version: " + version);
+            }
+
+            var databaseProvider = GetDatabaseProvider(commandLineArgs);
+            if (databaseProvider != DatabaseProvider.NotSpecified)
+            {
+                Logger.LogInformation("Database provider: " + databaseProvider);
+            }
+
+            var uiFramework = GetUiFramework(commandLineArgs);
+            if (uiFramework != UiFramework.NotSpecified)
+            {
+                Logger.LogInformation("UI Framework: " + uiFramework);
+            }
+
+            var gitHubLocalRepositoryPath = commandLineArgs.Options.GetOrNull(Options.GitHubLocalRepositoryPath.Long);
+            if (gitHubLocalRepositoryPath != null)
+            {
+                Logger.LogInformation("GitHub Local Repository Path: " + gitHubLocalRepositoryPath);
+            }
 
             var outputFolder = commandLineArgs.Options.GetOrNull(Options.OutputFolder.Short, Options.OutputFolder.Long);
             if (outputFolder != null)
@@ -59,6 +84,22 @@ namespace Volo.Abp.Cli.Commands
             {
                 outputFolder = Directory.GetCurrentDirectory();
             }
+
+            Logger.LogInformation("Output folder: " + outputFolder);
+
+            commandLineArgs.Options.Add(CliConsts.Command, commandLineArgs.Command);
+
+            var result = await TemplateProjectBuilder.BuildAsync(
+                new ProjectBuildArgs(
+                    SolutionName.Parse(commandLineArgs.Target),
+                    template,
+                    version,
+                    databaseProvider,
+                    uiFramework,
+                    gitHubLocalRepositoryPath,
+                    commandLineArgs.Options
+                )
+            );
 
             using (var templateFileStream = new MemoryStream(result.ZipContent))
             {
@@ -87,50 +128,59 @@ namespace Volo.Abp.Cli.Commands
                         {
                             StreamUtils.Copy(zipInputStream, streamWriter, buffer);
                         }
+
                         zipEntry = zipInputStream.GetNextEntry();
                     }
                 }
             }
 
-            Logger.LogInformation($"Successfully created the project '{commandLineArgs.Target}'");
-            Logger.LogInformation($"The output folder is: '{outputFolder}'");
+            Logger.LogInformation($"'{commandLineArgs.Target}' has been successfully created to '{outputFolder}'");
         }
 
-        public Task<string> GetUsageInfo()
+        public string GetUsageInfo()
         {
             var sb = new StringBuilder();
 
             sb.AppendLine("");
             sb.AppendLine("Usage:");
-            sb.AppendLine("  abp new <project-name> [-t|--template] [-d|--database-provider] [-o|--output-folder]");
+            sb.AppendLine("");
+            sb.AppendLine("  abp new <project-name> [options]");
             sb.AppendLine("");
             sb.AppendLine("Options:");
-            sb.AppendLine("-t|--template <template-name>");
-            sb.AppendLine("-o|--output-folder <output-folder>");
+            sb.AppendLine("");
+            sb.AppendLine("-t|--template <template-name>               (default: app)");
+            sb.AppendLine("-u|--ui <ui-framework>                      (if supported by the template)");
             sb.AppendLine("-d|--database-provider <database-provider>  (if supported by the template)");
+            sb.AppendLine("-o|--output-folder <output-folder>          (default: current folder)");
+            sb.AppendLine("-v|--version <version>                      (default: latest version)");
             sb.AppendLine("--tiered                                    (if supported by the template)");
             sb.AppendLine("--no-ui                                     (if supported by the template)");
+            sb.AppendLine("--separate-identity-server                  (if supported by the template)");
+            sb.AppendLine("--local-framework-ref --abp-path <your-local-abp-repo-path>  (keeps local references to projects instead of replacing with NuGet package references)");
             sb.AppendLine("");
-            sb.AppendLine("Some examples:");
+            sb.AppendLine("Examples:");
+            sb.AppendLine("");
             sb.AppendLine("  abp new Acme.BookStore");
             sb.AppendLine("  abp new Acme.BookStore --tiered");
-            sb.AppendLine("  abp new Acme.BookStore -t mvc-module");
-            sb.AppendLine("  abp new Acme.BookStore -t mvc-module no-ui");
+            sb.AppendLine("  abp new Acme.BookStore -u angular");
+            sb.AppendLine("  abp new Acme.BookStore -u angular -d mongodb");
             sb.AppendLine("  abp new Acme.BookStore -d mongodb");
-            sb.AppendLine("  abp new Acme.BookStore -t mvc -d mongodb");
-            sb.AppendLine("  abp new Acme.BookStore -t mvc -d mongodb -o d:\\project");
+            sb.AppendLine("  abp new Acme.BookStore -d mongodb -o d:\\my-project");
+            sb.AppendLine("  abp new Acme.BookStore -t module");
+            sb.AppendLine("  abp new Acme.BookStore -t module no-ui");
+            sb.AppendLine("  abp new Acme.BookStore --local-framework-ref --abp-path \"D:\\github\\abp\"");
             sb.AppendLine("");
-            sb.AppendLine("See the documentation for more info.");
+            sb.AppendLine("See the documentation for more info: https://docs.abp.io/en/abp/latest/CLI");
 
-            return Task.FromResult(sb.ToString());
+            return sb.ToString();
         }
 
-        public Task<string> GetShortDescriptionAsync()
+        public string GetShortDescription()
         {
-            return Task.FromResult("Generates a new solution based on the ABP startup templates.");
+            return "Generates a new solution based on the ABP startup templates.";
         }
 
-        protected virtual DatabaseProvider GetDatabaseProviderOrNull(CommandLineArgs commandLineArgs)
+        protected virtual DatabaseProvider GetDatabaseProvider(CommandLineArgs commandLineArgs)
         {
             var optionValue = commandLineArgs.Options.GetOrNull(Options.DatabaseProvider.Short, Options.DatabaseProvider.Long);
             switch (optionValue)
@@ -141,6 +191,20 @@ namespace Volo.Abp.Cli.Commands
                     return DatabaseProvider.MongoDb;
                 default:
                     return DatabaseProvider.NotSpecified;
+            }
+        }
+
+        private UiFramework GetUiFramework(CommandLineArgs commandLineArgs)
+        {
+            var optionValue = commandLineArgs.Options.GetOrNull(Options.UiFramework.Short, Options.UiFramework.Long);
+            switch (optionValue)
+            {
+                case "mvc":
+                    return UiFramework.Mvc;
+                case "angular":
+                    return UiFramework.Angular;
+                default:
+                    return UiFramework.NotSpecified;
             }
         }
 
@@ -162,6 +226,23 @@ namespace Volo.Abp.Cli.Commands
             {
                 public const string Short = "o";
                 public const string Long = "output-folder";
+            }
+
+            public static class GitHubLocalRepositoryPath
+            {
+                public const string Long = "abp-path";
+            }
+
+            public static class Version
+            {
+                public const string Short = "v";
+                public const string Long = "version";
+            }
+
+            public static class UiFramework
+            {
+                public const string Short = "u";
+                public const string Long = "ui";
             }
         }
     }

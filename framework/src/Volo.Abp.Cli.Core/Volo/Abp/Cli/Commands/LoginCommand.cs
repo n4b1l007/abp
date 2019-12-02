@@ -26,22 +26,34 @@ namespace Volo.Abp.Cli.Commands
         {
             if (commandLineArgs.Target.IsNullOrEmpty())
             {
-                throw new CliUsageException("Username name is missing!" + Environment.NewLine + Environment.NewLine + await GetUsageInfo());
+                throw new CliUsageException(
+                    "Username name is missing!" +
+                    Environment.NewLine + Environment.NewLine +
+                    GetUsageInfo()
+                );
             }
 
             Console.Write("Password: ");
             var password = ConsoleHelper.ReadSecret();
             if (password.IsNullOrWhiteSpace())
             {
-                throw new CliUsageException("Password name is missing!" + Environment.NewLine + Environment.NewLine + await GetUsageInfo());
+                throw new CliUsageException(
+                    "Password is missing!" +
+                    Environment.NewLine + Environment.NewLine +
+                    GetUsageInfo()
+                );
             }
 
-            await AuthService.LoginAsync(commandLineArgs.Target, password);
+            await AuthService.LoginAsync(
+                commandLineArgs.Target,
+                password,
+                commandLineArgs.Options.GetOrNull(Options.Organization.Short, Options.Organization.Long)
+            );
 
             Logger.LogInformation($"Successfully logged in as '{commandLineArgs.Target}'");
         }
 
-        public Task<string> GetUsageInfo()
+        public string GetUsageInfo()
         {
             var sb = new StringBuilder();
 
@@ -50,14 +62,26 @@ namespace Volo.Abp.Cli.Commands
             sb.AppendLine("  abp login <username>");
             sb.AppendLine("");
             sb.AppendLine("Example:");
+            sb.AppendLine("");
             sb.AppendLine("  abp login john");
+            sb.AppendLine("");
+            sb.AppendLine("See the documentation for more info: https://docs.abp.io/en/abp/latest/CLI");
 
-            return Task.FromResult(sb.ToString());
+            return sb.ToString();
         }
 
-        public Task<string> GetShortDescriptionAsync()
+        public string GetShortDescription()
         {
-            return Task.FromResult("");
+            return string.Empty;
+        }
+
+        public static class Options
+        {
+            public static class Organization
+            {
+                public const string Short = "o";
+                public const string Long = "organization";
+            }
         }
     }
 }

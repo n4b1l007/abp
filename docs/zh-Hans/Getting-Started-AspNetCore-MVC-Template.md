@@ -12,7 +12,7 @@ dotnet tool install -g Volo.Abp.Cli
 
 在空文件夹中使用 `abp new` 命令来创建项目:
 
-````
+````bash
 abp new Acme.BookStore
 ````
 
@@ -35,7 +35,7 @@ abp new Acme.BookStore
 
 该解决方案具有分层结构(基于[Domain Driven Design](Domain-Driven-Design.md)), 并包含配置好的的单元&集成测试项目,可与**EF Core**和**SQLite**数据库内存一起使用.
 
-> 请参阅[MVC应用程序模板文档](Startup-Templates/Mvc.md)以详细了解解决方案结构.
+> 请参阅[应用程序模板文档](Startup-Templates/Application.md)以详细了解解决方案结构.
 
 ### 数据库连接字符串
 
@@ -49,7 +49,7 @@ abp new Acme.BookStore
 }
 ````
 
-解决方案使用 **Entity Framework Core** 和 **MS SQL Server**. EF Core支持[各种](https://docs.microsoft.com/en-us/ef/core/providers/)数据库提供程序,因此你可以根据实际需要使用其他DBMS. 如果需要,请更改连接字符串.
+解决方案使用 **Entity Framework Core** 和 **MS SQL Server**. EF Core支持[各种](https://docs.microsoft.com/zh-cn/ef/core/providers/)数据库提供程序,因此你可以根据实际需要使用其他DBMS. 如果需要,请更改连接字符串.
 
 ### 创建数据库并应用数据库迁移
 

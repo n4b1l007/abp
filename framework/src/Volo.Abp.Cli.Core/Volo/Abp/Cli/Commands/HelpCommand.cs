@@ -13,35 +13,35 @@ namespace Volo.Abp.Cli.Commands
     public class HelpCommand : IConsoleCommand, ITransientDependency
     {
         public ILogger<HelpCommand> Logger { get; set; }
-        protected CliOptions CliOptions { get; }
+        protected AbpCliOptions AbpCliOptions { get; }
         protected IHybridServiceScopeFactory ServiceScopeFactory { get; }
 
-        public HelpCommand(IOptions<CliOptions> cliOptions,
+        public HelpCommand(IOptions<AbpCliOptions> cliOptions,
             IHybridServiceScopeFactory serviceScopeFactory)
         {
             ServiceScopeFactory = serviceScopeFactory;
             Logger = NullLogger<HelpCommand>.Instance;
-            CliOptions = cliOptions.Value;
+            AbpCliOptions = cliOptions.Value;
         }
 
         public async Task ExecuteAsync(CommandLineArgs commandLineArgs)
         {
             if (string.IsNullOrWhiteSpace(commandLineArgs.Target))
             {
-                Logger.LogInformation(await GetUsageInfo());
+                Logger.LogInformation(GetUsageInfo());
                 return;
             }
 
-            var commandType = CliOptions.Commands[commandLineArgs.Target];
+            var commandType = AbpCliOptions.Commands[commandLineArgs.Target];
 
             using (var scope = ServiceScopeFactory.CreateScope())
             {
                 var command = (IConsoleCommand) scope.ServiceProvider.GetRequiredService(commandType);
-                Logger.LogInformation(await command.GetUsageInfo());
+                Logger.LogInformation(command.GetUsageInfo());
             }
         }
 
-        public async Task<string> GetUsageInfo()
+        public string GetUsageInfo()
         {
             var sb = new StringBuilder();
 
@@ -51,18 +51,19 @@ namespace Volo.Abp.Cli.Commands
             sb.AppendLine("    abp <command> <target> [options]");
             sb.AppendLine("");
             sb.AppendLine("Command List:");
+            sb.AppendLine("");
 
-            foreach (var command in CliOptions.Commands.ToArray())
+            foreach (var command in AbpCliOptions.Commands.ToArray())
             {
                 string shortDescription;
 
                 using (var scope = ServiceScopeFactory.CreateScope())
                 {
-                    shortDescription = await ((IConsoleCommand)scope.ServiceProvider.GetRequiredService(command.Value))
-                        .GetShortDescriptionAsync();
+                    shortDescription = ((IConsoleCommand) scope.ServiceProvider
+                            .GetRequiredService(command.Value)).GetShortDescription();
                 }
 
-                sb.Append("    >");
+                sb.Append("    > ");
                 sb.Append(command.Key);
                 sb.Append(string.IsNullOrWhiteSpace(shortDescription) ? "":":");
                 sb.Append(" ");
@@ -70,13 +71,18 @@ namespace Volo.Abp.Cli.Commands
             }
 
             sb.AppendLine("");
+            sb.AppendLine("To get a detailed help for a command:");
+            sb.AppendLine("");
+            sb.AppendLine("    abp help <command>");
+            sb.AppendLine("");
+            sb.AppendLine("See the documentation for more info: https://docs.abp.io/en/abp/latest/CLI");
 
             return sb.ToString();
         }
 
-        public Task<string> GetShortDescriptionAsync()
+        public string GetShortDescription()
         {
-            return Task.FromResult("");
+            return string.Empty;
         }
     }
 }
