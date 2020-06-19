@@ -2,10 +2,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Nito.AsyncEx;
+using Volo.Abp.DependencyInjection;
+using Volo.Abp.ExceptionHandling;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.Threading;
 
@@ -23,12 +26,14 @@ namespace Volo.Abp.Caching
             IDistributedCache cache,
             ICancellationTokenProvider cancellationTokenProvider,
             IDistributedCacheSerializer serializer,
-            ICurrentTenant currentTenant) : base(
+            IDistributedCacheKeyNormalizer keyNormalizer,
+            IHybridServiceScopeFactory serviceScopeFactory) : base(
                 distributedCacheOption: distributedCacheOption,
                 cache: cache,
                 cancellationTokenProvider: cancellationTokenProvider,
                 serializer: serializer,
-                currentTenant: currentTenant)
+                keyNormalizer: keyNormalizer,
+                serviceScopeFactory: serviceScopeFactory)
         {
         }
 
@@ -54,7 +59,9 @@ namespace Volo.Abp.Caching
 
         protected IDistributedCacheSerializer Serializer { get; }
 
-        protected ICurrentTenant CurrentTenant { get; }
+        protected IDistributedCacheKeyNormalizer KeyNormalizer { get; }
+
+        protected IHybridServiceScopeFactory ServiceScopeFactory { get; }
 
         protected SemaphoreSlim SyncSemaphore { get; }
 
@@ -67,29 +74,31 @@ namespace Volo.Abp.Caching
             IDistributedCache cache,
             ICancellationTokenProvider cancellationTokenProvider,
             IDistributedCacheSerializer serializer,
-            ICurrentTenant currentTenant)
+            IDistributedCacheKeyNormalizer keyNormalizer,
+            IHybridServiceScopeFactory serviceScopeFactory)
         {
             _distributedCacheOption = distributedCacheOption.Value;
             Cache = cache;
             CancellationTokenProvider = cancellationTokenProvider;
             Logger = NullLogger<DistributedCache<TCacheItem, TCacheKey>>.Instance;
             Serializer = serializer;
-            CurrentTenant = currentTenant;
+            KeyNormalizer = keyNormalizer;
+            ServiceScopeFactory = serviceScopeFactory;
 
             SyncSemaphore = new SemaphoreSlim(1, 1);
 
             SetDefaultOptions();
         }
+
         protected virtual string NormalizeKey(TCacheKey key)
         {
-            var normalizedKey = "c:" + CacheName + ",k:" + _distributedCacheOption.KeyPrefix + key.ToString();
-
-            if (!IgnoreMultiTenancy && CurrentTenant.Id.HasValue)
-            {
-                normalizedKey = "t:" + CurrentTenant.Id.Value + "," + normalizedKey;
-            }
-
-            return normalizedKey;
+            return KeyNormalizer.NormalizeKey(
+                new DistributedCacheKeyNormalizeArgs(
+                    key.ToString(),
+                    CacheName,
+                    IgnoreMultiTenancy
+                )
+            );
         }
 
         protected virtual DistributedCacheEntryOptions GetDefaultCacheEntryOptions()
@@ -102,6 +111,7 @@ namespace Volo.Abp.Caching
                     return options;
                 }
             }
+
             return _distributedCacheOption.GlobalCacheEntryOptions;
         }
 
@@ -115,6 +125,7 @@ namespace Volo.Abp.Caching
             //Configure default cache entry options
             DefaultCacheOptions = GetDefaultCacheEntryOptions();
         }
+
         /// <summary>
         /// Gets a cache item with the given key. If no cache item is found for the given key then returns null.
         /// </summary>
@@ -137,7 +148,7 @@ namespace Volo.Abp.Caching
             {
                 if (hideErrors == true)
                 {
-                    Logger.LogException(ex, LogLevel.Warning);
+                    AsyncHelper.RunSync(() => HandleExceptionAsync(ex));
                     return null;
                 }
 
@@ -179,7 +190,7 @@ namespace Volo.Abp.Caching
             {
                 if (hideErrors == true)
                 {
-                    Logger.LogException(ex, LogLevel.Warning);
+                    await HandleExceptionAsync(ex);
                     return null;
                 }
 
@@ -193,6 +204,7 @@ namespace Volo.Abp.Caching
 
             return Serializer.Deserialize<TCacheItem>(cachedBytes);
         }
+
         /// <summary>
         /// Gets or Adds a cache item with the given key. If no cache item is found for the given key then adds a cache item
         /// provided by <paramref name="factory" /> delegate and returns the provided cache item.
@@ -228,6 +240,7 @@ namespace Volo.Abp.Caching
 
             return value;
         }
+
         /// <summary>
         /// Gets or Adds a cache item with the given key. If no cache item is found for the given key then adds a cache item
         /// provided by <paramref name="factory" /> delegate and returns the provided cache item.
@@ -266,6 +279,7 @@ namespace Volo.Abp.Caching
 
             return value;
         }
+
         /// <summary>
         /// Sets the cache item value for the provided key.
         /// </summary>
@@ -293,13 +307,14 @@ namespace Volo.Abp.Caching
             {
                 if (hideErrors == true)
                 {
-                    Logger.LogException(ex, LogLevel.Warning);
+                    AsyncHelper.RunSync(() => HandleExceptionAsync(ex));
                     return;
                 }
 
                 throw;
             }
         }
+
         /// <summary>
         /// Sets the cache item value for the provided key.
         /// </summary>
@@ -331,13 +346,14 @@ namespace Volo.Abp.Caching
             {
                 if (hideErrors == true)
                 {
-                    Logger.LogException(ex, LogLevel.Warning);
+                    await HandleExceptionAsync(ex);
                     return;
                 }
 
                 throw;
             }
         }
+
         /// <summary>
         /// Refreshes the cache value of the given key, and resets its sliding expiration timeout.
         /// </summary>
@@ -357,7 +373,7 @@ namespace Volo.Abp.Caching
             {
                 if (hideErrors == true)
                 {
-                    Logger.LogException(ex, LogLevel.Warning);
+                    AsyncHelper.RunSync(() => HandleExceptionAsync(ex));
                     return;
                 }
 
@@ -386,13 +402,14 @@ namespace Volo.Abp.Caching
             {
                 if (hideErrors == true)
                 {
-                    Logger.LogException(ex, LogLevel.Warning);
+                    await HandleExceptionAsync(ex);
                     return;
                 }
 
                 throw;
             }
         }
+
         /// <summary>
         /// Removes the cache item for given key from cache.
         /// </summary>
@@ -412,12 +429,14 @@ namespace Volo.Abp.Caching
             {
                 if (hideErrors == true)
                 {
-                    Logger.LogException(ex, LogLevel.Warning);
+                    AsyncHelper.RunSync(() => HandleExceptionAsync(ex));
+                    return;
                 }
 
                 throw;
             }
         }
+
         /// <summary>
         /// Removes the cache item for given key from cache.
         /// </summary>
@@ -440,7 +459,7 @@ namespace Volo.Abp.Caching
             {
                 if (hideErrors == true)
                 {
-                    Logger.LogException(ex, LogLevel.Warning);
+                    await HandleExceptionAsync(ex);
                     return;
                 }
 
@@ -448,6 +467,16 @@ namespace Volo.Abp.Caching
             }
         }
 
-    }
+        protected virtual async Task HandleExceptionAsync(Exception ex)
+        {
+            Logger.LogException(ex, LogLevel.Warning);
 
+            using (var scope = ServiceScopeFactory.CreateScope())
+            {
+                await scope.ServiceProvider
+                    .GetRequiredService<IExceptionNotifier>()
+                    .NotifyAsync(new ExceptionNotificationContext(ex, LogLevel.Warning));
+            }
+        }
+    }
 }

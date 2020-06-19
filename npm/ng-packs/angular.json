@@ -19,7 +19,8 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "coverage": true
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
@@ -31,7 +32,6 @@
         }
       }
     },
-
     "theme-shared": {
       "projectType": "library",
       "root": "packages/theme-shared",
@@ -48,13 +48,17 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "coverage": true
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": ["packages/theme-shared/tsconfig.lib.json", "packages/theme-shared/tsconfig.spec.json"],
+            "tsConfig": [
+              "packages/theme-shared/tsconfig.lib.json",
+              "packages/theme-shared/tsconfig.spec.json"
+            ],
             "exclude": ["**/node_modules/**"]
           }
         }
@@ -77,13 +81,17 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "coverage": true
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": ["packages/theme-basic/tsconfig.lib.json", "packages/theme-basic/tsconfig.spec.json"],
+            "tsConfig": [
+              "packages/theme-basic/tsconfig.lib.json",
+              "packages/theme-basic/tsconfig.spec.json"
+            ],
             "exclude": ["**/node_modules/**"]
           }
         }
@@ -103,17 +111,19 @@
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "main": "packages/account/src/test.ts",
-            "tsConfig": "packages/account/tsconfig.spec.json",
-            "karmaConfig": "packages/account/karma.conf.js"
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": ["packages/account/tsconfig.lib.json", "packages/account/tsconfig.spec.json"],
+            "tsConfig": [
+              "packages/account/tsconfig.lib.json",
+              "packages/account/tsconfig.spec.json"
+            ],
             "exclude": ["**/node_modules/**"]
           }
         }
@@ -135,7 +145,8 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "coverage": true
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
@@ -166,13 +177,17 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "coverage": true
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": ["packages/identity/tsconfig.lib.json", "packages/identity/tsconfig.spec.json"],
+            "tsConfig": [
+              "packages/identity/tsconfig.lib.json",
+              "packages/identity/tsconfig.spec.json"
+            ],
             "exclude": ["**/node_modules/**"]
           }
         }
@@ -194,7 +209,8 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "coverage": true
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
@@ -225,7 +241,8 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "coverage": true
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
@@ -254,11 +271,10 @@
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "main": "packages/setting-management/src/test.ts",
-            "tsConfig": "packages/setting-management/tsconfig.spec.json",
-            "karmaConfig": "packages/setting-management/karma.conf.js"
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
@@ -287,11 +303,10 @@
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "main": "packages/setting-management-config/src/test.ts",
-            "tsConfig": "packages/setting-management-config/tsconfig.spec.json",
-            "karmaConfig": "packages/setting-management-config/karma.conf.js"
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
@@ -320,17 +335,19 @@
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "main": "packages/identity-config/src/test.ts",
-            "tsConfig": "packages/identity-config/tsconfig.spec.json",
-            "karmaConfig": "packages/identity-config/karma.conf.js"
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": ["packages/identity-config/tsconfig.lib.json", "packages/identity-config/tsconfig.spec.json"],
+            "tsConfig": [
+              "packages/identity-config/tsconfig.lib.json",
+              "packages/identity-config/tsconfig.spec.json"
+            ],
             "exclude": ["**/node_modules/**"]
           }
         }
@@ -350,17 +367,19 @@
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "main": "packages/account-config/src/test.ts",
-            "tsConfig": "packages/account-config/tsconfig.spec.json",
-            "karmaConfig": "packages/account-config/karma.conf.js"
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": ["packages/account-config/tsconfig.lib.json", "packages/account-config/tsconfig.spec.json"],
+            "tsConfig": [
+              "packages/account-config/tsconfig.lib.json",
+              "packages/account-config/tsconfig.spec.json"
+            ],
             "exclude": ["**/node_modules/**"]
           }
         }
@@ -380,11 +399,10 @@
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "main": "packages/tenant-management-config/src/test.ts",
-            "tsConfig": "packages/tenant-management-config/tsconfig.spec.json",
-            "karmaConfig": "packages/tenant-management-config/karma.conf.js"
+            "coverage": true,
+            "passWithNoTests": true
           }
         },
         "lint": {
@@ -417,38 +435,32 @@
             "index": "apps/dev-app/src/index.html",
             "main": "apps/dev-app/src/main.ts",
             "polyfills": "apps/dev-app/src/polyfills.ts",
-            "tsConfig": "apps/dev-app/tsconfig.app.json",
+            "tsConfig": "apps/dev-app/tsconfig.prod.json",
             "aot": false,
             "assets": ["apps/dev-app/src/favicon.ico", "apps/dev-app/src/assets"],
             "extractCss": true,
             "styles": [
-              "apps/dev-app/src/styles.scss",
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              {
+                "input": "node_modules/@abp/ng.theme.shared/styles/bootstrap-rtl.min.css",
+                "inject": false,
+                "bundleName": "bootstrap-rtl.min"
+              },
+              {
+                "input": "node_modules/bootstrap/dist/css/bootstrap.min.css",
+                "inject": true,
+                "bundleName": "bootstrap-ltr.min"
+              },
               {
                 "input": "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-                "lazy": true,
+                "inject": true,
                 "bundleName": "fontawesome-all.min"
               },
               {
                 "input": "node_modules/@fortawesome/fontawesome-free/css/v4-shims.min.css",
-                "lazy": true,
+                "inject": true,
                 "bundleName": "fontawesome-v4-shims.min"
               },
-              {
-                "input": "node_modules/primeng/resources/themes/nova-light/theme.css",
-                "lazy": true,
-                "bundleName": "primeng-nova-light-theme"
-              },
-              {
-                "input": "node_modules/primeicons/primeicons.css",
-                "lazy": true,
-                "bundleName": "primeicons"
-              },
-              {
-                "input": "node_modules/primeng/resources/primeng.min.css",
-                "lazy": true,
-                "bundleName": "primeng.min"
-              }
+              "apps/dev-app/src/styles.scss"
             ],
             "scripts": []
           },
@@ -481,6 +493,15 @@
                   "maximumError": "10kb"
                 }
               ]
+            },
+            "internal": {
+              "tsConfig": "apps/dev-app/tsconfig.dev.json",
+              "fileReplacements": [
+                {
+                  "replace": "apps/dev-app/src/environments/environment.ts",
+                  "with": "apps/dev-app/src/environments/environment.internal.ts"
+                }
+              ]
             }
           }
         },
@@ -492,6 +513,9 @@
           "configurations": {
             "production": {
               "browserTarget": "dev-app:build:production"
+            },
+            "internal": {
+              "browserTarget": "dev-app:build:internal"
             }
           }
         },
@@ -501,34 +525,19 @@
             "browserTarget": "dev-app:build"
           }
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "apps/dev-app/src/test.ts",
-            "polyfills": "apps/dev-app/src/polyfills.ts",
-            "tsConfig": "apps/dev-app/tsconfig.spec.json",
-            "karmaConfig": "apps/dev-app/karma.conf.js",
-            "assets": ["apps/dev-app/src/favicon.ico", "apps/dev-app/src/assets"],
-            "styles": [
-              "apps/dev-app/src/styles.scss",
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "node_modules/font-awesome/css/font-awesome.min.css",
-              "node_modules/primeng/resources/themes/nova-light/theme.css",
-              "node_modules/primeicons/primeicons.css",
-              "node_modules/primeng/resources/primeng.min.css"
-            ],
-            "scripts": []
-          }
-        },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": ["apps/dev-app/tsconfig.app.json", "apps/dev-app/tsconfig.spec.json"],
+            "tsConfig": [
+              "apps/dev-app/tsconfig.dev.json",
+              "apps/dev-app/tsconfig.prod.json",
+              "apps/dev-app/tsconfig.spec.json"
+            ],
             "exclude": ["**/node_modules/**"]
           }
         }
       }
     }
   },
-  "defaultProject": "core"
+  "defaultProject": "dev-app"
 }
